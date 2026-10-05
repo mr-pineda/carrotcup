@@ -1,0 +1,359 @@
+import { useState, useMemo } from "react";
+import {
+  mockPlayers,
+  mockGroupRounds,
+  tournamentConfig,
+  Phase,
+} from "./mockData";
+
+export function Home() {
+  const [activePhase, setActivePhase] = useState<Phase>("groups");
+  const [selectedRound, setSelectedRound] = useState<number>(1);
+
+  const handlePhaseChange = (phase: Phase) => {
+    setActivePhase(phase);
+    setSelectedRound(1);
+  };
+
+  const currentPhaseConfig = tournamentConfig.phases[activePhase];
+  const roundsArray = Array.from(
+    { length: currentPhaseConfig.totalRounds },
+    (_, i) => i + 1,
+  );
+
+  const playersStats = useMemo(() => {
+    const phaseRounds = mockGroupRounds.filter(
+      (gr) => gr.phase === activePhase,
+    );
+    const playerIdsInPhase = new Set<string>();
+    phaseRounds.forEach((gr) => {
+      gr.players.forEach((pid) => playerIdsInPhase.add(pid));
+    });
+
+    const stats = Array.from(playerIdsInPhase).map((pid) => {
+      const p = mockPlayers.find((player) => player.id === pid)!;
+      let r1 = 0,
+        r2 = 0,
+        r3 = 0;
+
+      phaseRounds.forEach((gr) => {
+        if (gr.players.includes(p.id) && gr.scores[p.id] !== undefined) {
+          if (gr.roundNumber === 1) r1 = gr.scores[p.id];
+          if (gr.roundNumber === 2) r2 = gr.scores[p.id];
+          if (gr.roundNumber === 3) r3 = gr.scores[p.id];
+        }
+      });
+      return {
+        ...p,
+        r1,
+        r2,
+        r3,
+        total: r1 + r2 + r3,
+      };
+    });
+
+    return stats.sort((a, b) => b.total - a.total);
+  }, [activePhase]);
+
+  const groupsInSelectedRound = useMemo(() => {
+    return mockGroupRounds.filter(
+      (gr) => gr.phase === activePhase && gr.roundNumber === selectedRound,
+    );
+  }, [activePhase, selectedRound]);
+
+  const getPhaseName = (phase: Phase) => {
+    if (phase === "groups") return "Eliminatorias";
+    if (phase === "semifinal") return "Semifinal";
+    return "Final";
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12 relative z-10 animate-fade-in">
+      <header className="text-center mb-12 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-orange-500/20 rounded-full blur-[100px] -z-10"></div>
+        <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 tracking-tight font-['Outfit'] mb-4 drop-shadow-sm">
+          {tournamentConfig.name}
+        </h1>
+
+        {/* Phase Selector */}
+        <div className="flex justify-center mt-8">
+          <div className="flex w-full sm:w-fit bg-black/40 p-1.5 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl overflow-hidden">
+            {(["groups", "semifinal", "final"] as Phase[]).map((phase) => (
+              <button
+                key={phase}
+                onClick={() => handlePhaseChange(phase)}
+                className={`flex-1 sm:flex-none px-2 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-base transition-all ${
+                  activePhase === phase
+                    ? "bg-gradient-to-r from-orange-500 to-yellow-500 text-black shadow-lg sm:scale-105 scale-100"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                {getPhaseName(phase)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      <div className="flex flex-col gap-12">
+        {/* Clasificación Global - Full Width */}
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+          <div className="p-6 border-b border-white/10 bg-black/20 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-white font-['Outfit']">
+              {getPhaseName(activePhase)}
+            </h2>
+          </div>
+
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            <table className="w-full text-left border-collapse relative">
+              <thead className="sticky top-0 bg-[#161616] backdrop-blur-md z-30 shadow-md">
+                <tr className="border-b border-white/10 text-white/50 text-xs uppercase tracking-wider">
+                  <th className="p-4 font-bold">Jugador</th>
+                  {currentPhaseConfig.totalRounds > 1 && (
+                    <th className="p-4 font-bold text-center text-xs md:hidden">
+                      Rondas
+                    </th>
+                  )}
+                  {currentPhaseConfig.totalRounds >= 1 && (
+                    <th className="p-4 font-bold text-center hidden md:table-cell">
+                      Ronda 1
+                    </th>
+                  )}
+                  {currentPhaseConfig.totalRounds >= 2 && (
+                    <th className="p-4 font-bold text-center hidden md:table-cell">
+                      Ronda 2
+                    </th>
+                  )}
+                  {currentPhaseConfig.totalRounds >= 3 && (
+                    <th className="p-4 font-bold text-center hidden md:table-cell">
+                      Ronda 3
+                    </th>
+                  )}
+                  <th className="p-4 font-bold text-right text-white">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {playersStats.map((player, index) => {
+                  let rowBg = "";
+                  let glowColor = "";
+                  let imgBorder = "border border-white/10";
+                  let nameColor = "text-white group-hover:text-amber-100";
+                  let scoreColor = "from-white to-white/50";
+                  let showGlow = false;
+
+                  if (activePhase === "final") {
+                    if (index === 0) {
+                      // Oro
+                      rowBg = "bg-yellow-400/10";
+                      glowColor = "bg-yellow-400/30";
+                      imgBorder =
+                        "border-2 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)]";
+                      nameColor = "text-yellow-300";
+                      scoreColor = "from-yellow-200 to-yellow-500";
+                      showGlow = true;
+                    } else if (index === 1) {
+                      // Plata
+                      rowBg = "bg-gray-300/10";
+                      glowColor = "bg-gray-300/30";
+                      imgBorder =
+                        "border-2 border-gray-300 shadow-[0_0_15px_rgba(209,213,219,0.5)]";
+                      nameColor = "text-gray-200";
+                      scoreColor = "from-gray-100 to-gray-400";
+                      showGlow = true;
+                    } else if (index === 2) {
+                      // Bronce
+                      rowBg = "bg-amber-800/10";
+                      glowColor = "bg-amber-800/20";
+                      imgBorder =
+                        "border-2 border-amber-700/60 shadow-[0_0_10px_rgba(180,83,9,0.3)]";
+                      nameColor = "text-amber-500/80";
+                      scoreColor = "from-amber-400/70 to-amber-700/70";
+                      showGlow = true;
+                    }
+                  } else {
+                    const isAdvancing =
+                      index < currentPhaseConfig.advancingPlayers;
+                    if (isAdvancing) {
+                      rowBg = "bg-amber-500/5";
+                      glowColor = "bg-amber-400/20";
+                      imgBorder =
+                        "border-2 border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.3)]";
+                      nameColor = "text-amber-200";
+                      scoreColor = "from-amber-200 to-amber-500";
+                      showGlow = true;
+                    }
+                  }
+
+                  return (
+                    <tr
+                      key={player.id}
+                      className={`hover:bg-white/5 transition-colors group ${rowBg}`}
+                    >
+                      <td className="p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="relative shrink-0">
+                            {showGlow && (
+                              <div
+                                className={`absolute -inset-1 rounded-full blur-sm opacity-50 ${glowColor}`}
+                              ></div>
+                            )}
+                            <img
+                              src={
+                                player.photo_thumb_url ||
+                                `https://ui-avatars.com/api/?name=${player.name}&background=random`
+                              }
+                              alt={player.name}
+                              className={`w-10 h-10 rounded-full object-cover relative z-10 ${imgBorder}`}
+                            />
+                          </div>
+                          <span
+                            className={`font-bold transition-colors ${nameColor}`}
+                          >
+                            {player.name}
+                          </span>
+                        </div>
+                      </td>
+                      {currentPhaseConfig.totalRounds > 1 && (
+                        <td className="p-4 text-center font-medium text-white/50 text-xs md:hidden tracking-wider whitespace-nowrap">
+                          {[
+                            currentPhaseConfig.totalRounds >= 1
+                              ? player.r1 > 0
+                                ? player.r1
+                                : "---"
+                              : null,
+                            currentPhaseConfig.totalRounds >= 2
+                              ? player.r2 > 0
+                                ? player.r2
+                                : "---"
+                              : null,
+                            currentPhaseConfig.totalRounds >= 3
+                              ? player.r3 > 0
+                                ? player.r3
+                                : "---"
+                              : null,
+                          ]
+                            .filter((val) => val !== null)
+                            .join(", ")}
+                        </td>
+                      )}
+                      {currentPhaseConfig.totalRounds >= 1 && (
+                        <td className="p-4 text-center font-medium text-white/70 hidden md:table-cell">
+                          {player.r1 > 0 ? player.r1 : "---"}
+                        </td>
+                      )}
+                      {currentPhaseConfig.totalRounds >= 2 && (
+                        <td className="p-4 text-center font-medium text-white/70 hidden md:table-cell">
+                          {player.r2 > 0 ? player.r2 : "---"}
+                        </td>
+                      )}
+                      {currentPhaseConfig.totalRounds >= 3 && (
+                        <td className="p-4 text-center font-medium text-white/70 hidden md:table-cell">
+                          {player.r3 > 0 ? player.r3 : "---"}
+                        </td>
+                      )}
+                      <td className="p-4 text-right">
+                        <div
+                          className={`text-2xl font-black text-transparent bg-clip-text bg-gradient-to-br ${scoreColor}`}
+                        >
+                          {player.total}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Phase / Round details - Hide if it's the final since it's just 1 table */}
+        {activePhase !== "final" && (
+          <div className="mt-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <h2 className="text-3xl font-bold text-white font-['Outfit'] flex items-center gap-3">
+                Resultados de Grupos
+              </h2>
+
+              {currentPhaseConfig.totalRounds > 1 && (
+                <div className="flex w-full md:w-fit bg-black/40 p-1 rounded-xl border border-white/10 overflow-hidden">
+                  {roundsArray.map((roundNum) => (
+                    <button
+                      key={roundNum}
+                      onClick={() => setSelectedRound(roundNum)}
+                      className={`flex-1 md:flex-none px-2 md:px-6 py-2.5 md:py-2 rounded-lg font-bold text-sm md:text-base transition-all ${
+                        selectedRound === roundNum
+                          ? "bg-white/20 text-white shadow-lg"
+                          : "text-white/40 hover:text-white/80 hover:bg-white/5"
+                      }`}
+                    >
+                      Ronda {roundNum}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+              {groupsInSelectedRound.map((group) => {
+                const groupPlayers = group.players
+                  .map((pid) => {
+                    const playerObj = mockPlayers.find((p) => p.id === pid);
+                    return {
+                      ...playerObj,
+                      score: group.scores[pid] || 0,
+                    };
+                  })
+                  .sort((a, b) => b.score - a.score);
+
+                return (
+                  <div
+                    key={group.id}
+                    className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-colors shadow-xl"
+                  >
+                    <div className="p-4 bg-black/20 border-b border-white/10 flex justify-between items-center">
+                      <h3 className="font-bold text-lg text-white">
+                        {group.groupName}
+                      </h3>
+                      {group.isFinished ? (
+                        <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-green-500/20 text-green-400 rounded-md border border-green-500/20">
+                          Completado
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 rounded-md border border-orange-500/20">
+                          Pendiente
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-2">
+                      {groupPlayers.map((p, idx) => (
+                        <div
+                          key={p?.id}
+                          className="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className="font-medium text-white/90 text-sm truncate max-w-[150px]"
+                              title={p?.name}
+                            >
+                              {p?.name}
+                            </span>
+                          </div>
+                          <span className="font-bold text-white bg-white/10 px-2.5 py-1 rounded-md text-sm border border-white/5">
+                            {p?.score > 0 || group.isFinished
+                              ? p?.score
+                              : "---"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
