@@ -28,6 +28,7 @@ export interface Player {
   id: string;
   name: string;
   photo_thumb_url?: string;
+  relatives?: string[];
 }
 
 export interface GroupRound {

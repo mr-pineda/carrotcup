@@ -3,7 +3,7 @@ import {
   mockPlayers,
   mockGroupRounds,
   tournamentConfig,
-  Phase,
+  type Phase,
 } from "./mockData";
 
 export function Home() {
@@ -37,10 +37,11 @@ export function Home() {
         r3 = 0;
 
       phaseRounds.forEach((gr) => {
-        if (gr.players.includes(p.id) && gr.scores[p.id] !== undefined) {
-          if (gr.roundNumber === 1) r1 = gr.scores[p.id];
-          if (gr.roundNumber === 2) r2 = gr.scores[p.id];
-          if (gr.roundNumber === 3) r3 = gr.scores[p.id];
+        const score = gr.scores[p.id];
+        if (gr.players.includes(p.id) && score !== undefined) {
+          if (gr.roundNumber === 1) r1 = score;
+          if (gr.roundNumber === 2) r2 = score;
+          if (gr.roundNumber === 3) r3 = score;
         }
       });
       return {
