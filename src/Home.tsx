@@ -1,14 +1,100 @@
-import { useState, useMemo } from "react";
-import {
-  mockPlayers,
-  mockGroupRounds,
-  tournamentConfig,
-  type Phase,
-} from "./mockData";
+import { useState, useMemo, useEffect } from "react";
+import { tournamentConfig, type Phase, type Player, type GroupRound } from "./mockData";
+import { supabase } from "./supabase";
 
 export function Home() {
   const [activePhase, setActivePhase] = useState<Phase>("groups");
   const [selectedRound, setSelectedRound] = useState<number>(1);
+
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [groupRounds, setGroupRounds] = useState<GroupRound[]>([]);
+
+  const [hasInitialPhaseSet, setHasInitialPhaseSet] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+
+    // Suscripción en tiempo real a cualquier cambio en la base de datos
+    const channel = supabase.channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public' },
+        () => {
+          fetchData(); // Refrescar datos al detectar cambios
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchData = async () => {
+    const { data: playersData } = await supabase.from("players").select("*");
+    
+    if (playersData) {
+      const parsedPlayers: Player[] = playersData.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        photo_full_url: p.photo_full_url,
+        photo_thumb_url: p.photo_thumb_url,
+        relatives: [] 
+      }));
+      setPlayers(parsedPlayers);
+    }
+
+    const { data: groupsData } = await supabase.from("groups").select("*").order("round_number");
+    const { data: gpData } = await supabase.from("group_players").select("*");
+
+    if (groupsData) {
+      const parsedGroups: GroupRound[] = groupsData.map((g: any) => {
+        const groupPlayers = gpData ? gpData.filter((gp: any) => gp.group_id === g.id) : [];
+        const scoresMap: Record<string, number> = {};
+        const playerIds: string[] = [];
+        
+        groupPlayers.forEach((gp: any) => {
+          playerIds.push(gp.player_id);
+          if (gp.score !== null && gp.score !== undefined) {
+            scoresMap[gp.player_id] = gp.score;
+          }
+        });
+
+        return {
+          id: g.id,
+          phase: g.phase as Phase,
+          roundNumber: g.round_number,
+          groupName: g.group_name,
+          players: playerIds,
+          scores: scoresMap,
+          isFinished: g.is_finished
+        };
+      });
+      setGroupRounds(parsedGroups);
+
+      if (!hasInitialPhaseSet) {
+        const checkUnlocked = (phase: Phase) => {
+          if (phase === "groups") return true;
+          if (phase === "semifinal") {
+            const round3Groups = parsedGroups.filter(gr => gr.phase === "groups" && gr.roundNumber === 3);
+            if (round3Groups.length === 0) return false;
+            return round3Groups.every(gr => gr.isFinished);
+          }
+          if (phase === "final") {
+            const semiGroups = parsedGroups.filter(gr => gr.phase === "semifinal");
+            if (semiGroups.length === 0) return false;
+            return semiGroups.every(gr => gr.isFinished);
+          }
+          return false;
+        };
+        
+        if (checkUnlocked("final")) setActivePhase("final");
+        else if (checkUnlocked("semifinal")) setActivePhase("semifinal");
+        
+        setHasInitialPhaseSet(true);
+      }
+    }
+  };
 
   const handlePhaseChange = (phase: Phase) => {
     setActivePhase(phase);
@@ -21,17 +107,45 @@ export function Home() {
     (_, i) => i + 1,
   );
 
+  const getTopPlayersFromPhase = (phase: Phase, limit: number) => {
+    const pRounds = groupRounds.filter((gr) => gr.phase === phase);
+    const ids = new Set<string>();
+    pRounds.forEach((gr) => gr.players.forEach((pid) => ids.add(pid)));
+    const stats = Array.from(ids).map((pid) => {
+      let total = 0;
+      pRounds.forEach((gr) => {
+        if (gr.players.includes(pid)) {
+          const score = gr.scores[pid];
+          if (score !== undefined) total += score;
+        }
+      });
+      return { pid, total };
+    });
+    stats.sort((a, b) => b.total - a.total);
+    return stats.slice(0, limit).map((s) => s.pid);
+  };
+
   const playersStats = useMemo(() => {
-    const phaseRounds = mockGroupRounds.filter(
+    const phaseRounds = groupRounds.filter(
       (gr) => gr.phase === activePhase,
     );
     const playerIdsInPhase = new Set<string>();
-    phaseRounds.forEach((gr) => {
-      gr.players.forEach((pid) => playerIdsInPhase.add(pid));
-    });
+    
+    if (phaseRounds.length > 0) {
+      phaseRounds.forEach((gr) => {
+        gr.players.forEach((pid) => playerIdsInPhase.add(pid));
+      });
+    } else {
+      if (activePhase === "semifinal") {
+        getTopPlayersFromPhase("groups", 8).forEach(pid => playerIdsInPhase.add(pid));
+      } else if (activePhase === "final") {
+        getTopPlayersFromPhase("semifinal", 4).forEach(pid => playerIdsInPhase.add(pid));
+      }
+    }
 
     const stats = Array.from(playerIdsInPhase).map((pid) => {
-      const p = mockPlayers.find((player) => player.id === pid)!;
+      const p = players.find((player) => player.id === pid);
+      if (!p) return null;
       let r1 = 0,
         r2 = 0,
         r3 = 0;
@@ -53,20 +167,44 @@ export function Home() {
       };
     });
 
-    return stats.sort((a, b) => b.total - a.total);
-  }, [activePhase]);
+    return stats.filter((s): s is NonNullable<typeof s> => s !== null).sort((a, b) => b.total - a.total);
+  }, [activePhase, groupRounds, players]);
 
   const groupsInSelectedRound = useMemo(() => {
-    return mockGroupRounds.filter(
+    return groupRounds.filter(
       (gr) => gr.phase === activePhase && gr.roundNumber === selectedRound,
     );
-  }, [activePhase, selectedRound]);
+  }, [activePhase, selectedRound, groupRounds]);
+
+
+  const isPhaseUnlocked = (phase: Phase) => {
+    if (phase === "groups") return true;
+    if (phase === "semifinal") {
+      const round3Groups = groupRounds.filter(gr => gr.phase === "groups" && gr.roundNumber === 3);
+      if (round3Groups.length === 0) return false;
+      return round3Groups.every(gr => gr.isFinished);
+    }
+    if (phase === "final") {
+      const semiGroups = groupRounds.filter(gr => gr.phase === "semifinal");
+      if (semiGroups.length === 0) return false;
+      return semiGroups.every(gr => gr.isFinished);
+    }
+    return false;
+  };
 
   const getPhaseName = (phase: Phase) => {
     if (phase === "groups") return "Eliminatorias";
     if (phase === "semifinal") return "Semifinal";
     return "Final";
   };
+
+  const isRound1Finished = useMemo(() => {
+    const round1Groups = groupRounds.filter(
+      (gr) => gr.phase === activePhase && gr.roundNumber === 1,
+    );
+    if (round1Groups.length === 0) return false;
+    return round1Groups.every((gr) => gr.isFinished);
+  }, [activePhase, groupRounds]);
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12 relative z-10 animate-fade-in">
@@ -79,19 +217,26 @@ export function Home() {
         {/* Phase Selector */}
         <div className="flex justify-center mt-8">
           <div className="flex w-full sm:w-fit bg-black/40 p-1.5 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl overflow-hidden">
-            {(["groups", "semifinal", "final"] as Phase[]).map((phase) => (
-              <button
-                key={phase}
-                onClick={() => handlePhaseChange(phase)}
-                className={`flex-1 sm:flex-none px-2 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-base transition-all ${
-                  activePhase === phase
-                    ? "bg-gradient-to-r from-orange-500 to-yellow-500 text-black shadow-lg sm:scale-105 scale-100"
-                    : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {getPhaseName(phase)}
-              </button>
-            ))}
+            {(["groups", "semifinal", "final"] as Phase[]).map((phase) => {
+              const unlocked = isPhaseUnlocked(phase);
+              return (
+                <button
+                  key={phase}
+                  onClick={() => unlocked && handlePhaseChange(phase)}
+                  disabled={!unlocked}
+                  className={`flex-1 sm:flex-none px-2 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-base transition-all ${
+                    !unlocked
+                      ? "opacity-40 cursor-not-allowed text-white/40"
+                      : activePhase === phase
+                      ? "bg-gradient-to-r from-orange-500 to-yellow-500 text-black shadow-lg sm:scale-105 scale-100"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  {getPhaseName(phase)}
+                  {!unlocked && <span className="ml-1 text-xs">🔒</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
       </header>
@@ -173,7 +318,7 @@ export function Home() {
                     }
                   } else {
                     const isAdvancing =
-                      index < currentPhaseConfig.advancingPlayers;
+                      isRound1Finished && index < currentPhaseConfig.advancingPlayers;
                     if (isAdvancing) {
                       rowBg = "bg-amber-500/5";
                       glowColor = "bg-amber-400/20";
@@ -298,12 +443,14 @@ export function Home() {
               {groupsInSelectedRound.map((group) => {
                 const groupPlayers = group.players
                   .map((pid) => {
-                    const playerObj = mockPlayers.find((p) => p.id === pid);
+                    const playerObj = players.find((p) => p.id === pid);
+                    if (!playerObj) return null;
                     return {
                       ...playerObj,
                       score: group.scores[pid] || 0,
                     };
                   })
+                  .filter((p): p is NonNullable<typeof p> => p !== null)
                   .sort((a, b) => b.score - a.score);
 
                 return (
