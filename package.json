@@ -2,6 +2,7 @@
   "name": "tele-tournament",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://mr-pineda.github.io/carrotcup",
   "type": "module",
   "scripts": {
     "dev": "bun --hot src/index.ts",
@@ -17,9 +18,10 @@
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
+    "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/bun": "latest"
+    "gh-pages": "^6.3.0"
   },
   "peerDependencies": {
     "typescript": "^7"
