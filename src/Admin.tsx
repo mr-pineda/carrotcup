@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { mockPlayers, type Player, tournamentConfig } from "./mockData";
+import { mockPlayers, type Player, tournamentConfig, mockGroupRounds, type Phase, type GroupRound } from "./mockData";
 import { ImageCropper } from "./ImageCropper";
 
 export function Admin() {
   const [players, setPlayers] = useState<Player[]>(mockPlayers);
+  const [tournamentStatus, setTournamentStatus] = useState<"registration" | "active">("registration");
+  const [groupRounds, setGroupRounds] = useState<GroupRound[]>(mockGroupRounds);
+  const [previewGroups, setPreviewGroups] = useState<GroupRound[] | null>(null);
 
   // Form State
+  const [isPlayersSectionOpen, setIsPlayersSectionOpen] = useState(false);
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
   const [newPlayerName, setNewPlayerName] = useState("");
   const [newPlayerRelatives, setNewPlayerRelatives] = useState<string[]>([]);
@@ -13,6 +17,73 @@ export function Admin() {
 
   // Cropper State
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+
+
+  // Scoring State
+  const [selectedPhaseForScore, setSelectedPhaseForScore] = useState<Phase>("groups");
+  const [selectedRoundForScore, setSelectedRoundForScore] = useState<number>(1);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [groupScores, setGroupScores] = useState<Record<string, string>>({}); // string to handle empty inputs
+
+  // Data for Scoring
+  const roundsForPhase = Array.from(
+    { length: tournamentConfig.phases[selectedPhaseForScore].totalRounds },
+    (_, i) => i + 1
+  );
+  
+  const groupsToScore = groupRounds.filter(
+    (gr) => gr.phase === selectedPhaseForScore && gr.roundNumber === selectedRoundForScore
+  );
+  
+  const activeGroupToScore = groupsToScore.find((gr) => gr.id === selectedGroupId);
+
+  const isScoreFormValid = activeGroupToScore && activeGroupToScore.players.every((pid) => {
+    const val = groupScores[pid];
+    return val !== undefined && val.trim() !== "" && !isNaN(Number(val));
+  });
+
+  const handleSaveScores = () => {
+    if (!activeGroupToScore || !isScoreFormValid) return;
+
+    setGroupRounds(prev => prev.map(gr => {
+      if (gr.id === activeGroupToScore.id) {
+        const newScores: Record<string, number> = {};
+        Object.keys(groupScores).forEach((pid) => {
+          newScores[pid] = Number(groupScores[pid]);
+        });
+        return {
+          ...gr,
+          scores: newScores,
+          isFinished: true
+        };
+      }
+      return gr;
+    }));
+
+    alert("¡Resultados guardados exitosamente!");
+    setGroupScores({});
+    setSelectedGroupId("");
+  };
+
+  const handleGroupSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const gid = e.target.value;
+    setSelectedGroupId(gid);
+    
+    // Auto-fill existing scores if any
+    const group = groupsToScore.find((gr) => gr.id === gid);
+    if (group && group.isFinished) {
+      const existing: Record<string, string> = {};
+      Object.keys(group.scores).forEach(pid => {
+        const score = group.scores[pid];
+        if (score !== undefined) {
+          existing[pid] = score.toString();
+        }
+      });
+      setGroupScores(existing);
+    } else {
+      setGroupScores({});
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -116,10 +187,84 @@ export function Admin() {
     }
   };
 
-  const generateGroups = () => {
-    alert(
-      "Algoritmo de formación de grupos en desarrollo. Considerará los parentescos para separarlos.",
+  const handleGeneratePreview = () => {
+    if (players.length < 4) {
+      alert("Se necesitan al menos 4 jugadores para iniciar el torneo.");
+      return;
+    }
+
+    const numGroups = Math.max(1, Math.floor(players.length / 4));
+    
+    // Shuffle and distribute
+    const shuffled = [...players].sort(() => Math.random() - 0.5);
+    const groups: Player[][] = Array.from({ length: numGroups }, () => []);
+    const maxPerGroup = Math.ceil(players.length / numGroups);
+    const minPerGroup = Math.floor(players.length / numGroups);
+    const remainder = players.length % numGroups;
+    
+    const capacities = Array.from({ length: numGroups }, (_, i) => 
+      i < remainder ? maxPerGroup : minPerGroup
     );
+
+    let warningTriggered = false;
+
+    for (const player of shuffled) {
+      let bestGroupIdx = -1;
+      let minConflicts = Infinity;
+
+      for (let i = 0; i < numGroups; i++) {
+        const currentGroup = groups[i];
+        const capacity = capacities[i];
+        
+        if (currentGroup && capacity !== undefined && currentGroup.length < capacity) {
+          const relatives = player.relatives || [];
+          const relativesInGroup = currentGroup.filter(p => relatives.includes(p.id)).length;
+          if (relativesInGroup < minConflicts) {
+            minConflicts = relativesInGroup;
+            bestGroupIdx = i;
+          }
+        }
+      }
+
+      if (minConflicts > 0) warningTriggered = true;
+      if (bestGroupIdx !== -1) {
+        const targetGroup = groups[bestGroupIdx];
+        if (targetGroup) {
+          targetGroup.push(player);
+        }
+      }
+    }
+
+    if (warningTriggered) {
+      alert("⚠️ Grupos generados. Nota: Debido a las restricciones matemáticas, algunos familiares quedaron en la misma mesa.");
+    }
+
+    const newGroups: GroupRound[] = groups.map((g, idx) => ({
+      id: `eliminatoria-${idx + 1}`,
+      phase: "groups",
+      roundNumber: 1,
+      groupName: `Mesa ${idx + 1}`,
+      players: g.map(p => p.id),
+      scores: {},
+      isFinished: false
+    }));
+
+    setPreviewGroups(newGroups);
+  };
+
+  const handleStartTournament = () => {
+    if (!previewGroups) return;
+    
+    alert("¡Torneo iniciado! Los grupos han sido confirmados.");
+    
+    setGroupRounds(prev => [
+      ...previewGroups,
+      ...prev.filter(gr => gr.phase !== "groups")
+    ]);
+
+    setTournamentStatus("active");
+    setPreviewGroups(null);
+    setIsPlayersSectionOpen(false);
   };
 
   return (
@@ -141,13 +286,46 @@ export function Admin() {
         </a>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="space-y-12">
+        {/* SECCIÓN 1: GESTIÓN DE JUGADORES */}
+        <section>
+          <div 
+            className="flex items-center justify-between mb-6 cursor-pointer bg-white/5 hover:bg-white/10 p-4 rounded-2xl border border-white/10 transition-colors"
+            onClick={() => setIsPlayersSectionOpen(!isPlayersSectionOpen)}
+          >
+            <h2 className="text-2xl font-bold text-white font-['Outfit'] flex items-center gap-3">
+              <span className="bg-purple-500/20 text-purple-400 p-2 rounded-lg">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </span>
+              Registro y Gestión de Jugadores
+            </h2>
+            <svg 
+              className={`w-6 h-6 text-white/50 transition-transform ${isPlayersSectionOpen ? 'rotate-180' : ''}`} 
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          {isPlayersSectionOpen && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
+
         {/* Columna Izquierda: Formulario */}
         <section className="lg:col-span-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden h-fit">
           <h2 className="text-2xl font-bold text-white mb-6 font-['Outfit']">
             {editingPlayerId ? "Editar Jugador" : "Nuevo Jugador"}
           </h2>
 
+          {tournamentStatus === "active" ? (
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
+              <svg className="w-16 h-16 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <p className="text-white/60 font-medium">La edición de jugadores está bloqueada.<br/>El torneo ya está en curso.</p>
+            </div>
+          ) : (
           <div className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-white/70 mb-1.5">
@@ -273,24 +451,25 @@ export function Admin() {
               </button>
             </div>
           </div>
+          )}
         </section>
 
-        {/* Columna Derecha: Lista de Jugadores y Grupos */}
-        <div className="lg:col-span-2 space-y-8">
-          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-            <div className="flex justify-between items-center mb-6">
+        {/* Columna Derecha: Lista de Jugadores */}
+        <div className="lg:col-span-2 h-auto lg:h-0 lg:min-h-full flex flex-col">
+          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col h-full">
+            <div className="flex justify-between items-center mb-6 shrink-0">
               <h2 className="text-2xl font-bold text-white font-['Outfit']">
                 Jugadores Registrados ({players.length})
               </h2>
             </div>
 
-            <div className="overflow-x-auto max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 rounded-xl border border-white/5 bg-black/20">
+            <div className="overflow-x-auto flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 rounded-xl border border-white/5 bg-black/20">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-[#1a1a24] z-10 shadow-md">
                   <tr className="border-b border-white/10 text-white/50 text-xs uppercase tracking-wider">
                     <th className="p-4 font-bold">Jugador</th>
                     <th className="p-4 font-bold">Familiares</th>
-                    <th className="p-4 font-bold text-right">Acciones</th>
+                    {tournamentStatus === "registration" && <th className="p-4 font-bold text-right">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -332,7 +511,8 @@ export function Admin() {
                           )}
                         </div>
                       </td>
-                      <td className="p-4 text-right">
+                                            {tournamentStatus === "registration" && (
+<td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => handleEditPlayer(player)}
@@ -372,45 +552,206 @@ export function Admin() {
                           </button>
                         </div>
                       </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </section>
-
-          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden flex flex-col md:flex-row gap-6 items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-white font-['Outfit'] mb-2">
-                Formar Grupos Aleatorios
-              </h2>
-              <p className="text-sm text-white/60 max-w-md">
-                Genera los grupos para la ronda eliminatoria. El algoritmo se
-                encargará de distribuir a los jugadores manteniendo separados a
-                sus familiares directos.
-              </p>
-            </div>
-            <button
-              onClick={generateGroups}
-              className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold transition-all shadow-lg shadow-green-500/25 flex items-center gap-2"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-              Generar Grupos
-            </button>
-          </section>
         </div>
+      </div>
+    )}
+  </section>
+
+        {/* SECCIÓN 2: GESTIÓN DEL TORNEO */}
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <span className="bg-green-500/20 text-green-400 p-2 rounded-lg">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </span>
+            <h2 className="text-2xl font-bold text-white font-['Outfit']">Gestión del Torneo</h2>
+          </div>
+
+          <div className="space-y-8">
+            <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+              <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white font-['Outfit'] mb-2">
+                    {tournamentStatus === "registration" ? "Formar Grupos e Iniciar Torneo" : "Torneo en Curso"}
+                  </h2>
+                  <p className="text-sm text-white/60 max-w-md">
+                    {tournamentStatus === "registration" 
+                      ? "Genera los grupos aleatorios separando a familiares. Podrás revisar los grupos antes de confirmar e iniciar el torneo."
+                      : "Los grupos iniciales han sido formados. Utiliza el panel de carga de resultados para avanzar."}
+                  </p>
+                </div>
+                {tournamentStatus === "registration" && !previewGroups && (
+                  <button
+                    onClick={handleGeneratePreview}
+                    className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold transition-all shadow-lg shadow-green-500/25 flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    Generar Grupos
+                  </button>
+                )}
+              </div>
+
+              {previewGroups && tournamentStatus === "registration" && (
+                <div className="w-full mt-8 bg-black/20 p-6 rounded-2xl border border-white/10 animate-fade-in">
+                  <h3 className="text-lg font-bold text-white mb-4">Vista Previa de los Grupos</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    {previewGroups.map(g => (
+                      <div key={g.id} className="bg-white/5 p-4 rounded-xl border border-white/5">
+                        <h4 className="font-bold text-white/90 mb-3 pb-2 border-b border-white/10">{g.groupName}</h4>
+                        <ul className="space-y-2">
+                          {g.players.map(pid => {
+                            const p = players.find(x => x.id === pid);
+                            return (
+                              <li key={pid} className="flex items-center gap-2 text-sm text-white/70">
+                                <img src={p?.photo_thumb_url || `https://ui-avatars.com/api/?name=${p?.name}&background=random`} className="w-5 h-5 rounded-full" />
+                                {p?.name}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-4 border-t border-white/10 pt-6">
+                    <button
+                      onClick={handleStartTournament}
+                      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold transition-all shadow-lg shadow-green-500/25 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Confirmar e Iniciar Torneo
+                    </button>
+                    <button
+                      onClick={handleGeneratePreview}
+                      className="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all font-bold flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Volver a Mezclar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+
+            <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden group/scores">
+
+            <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -z-10 group-hover/scores:bg-pink-500/20 transition-all"></div>
+            <h2 className="text-2xl font-bold text-white mb-6 font-['Outfit'] flex items-center gap-3">
+              <span className="bg-pink-500/20 text-pink-400 p-2 rounded-lg">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </span>
+              Cargar Resultados
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-1.5">Fase</label>
+                  <select 
+                    value={selectedPhaseForScore}
+                    onChange={(e) => {
+                      setSelectedPhaseForScore(e.target.value as Phase);
+                      setSelectedRoundForScore(1);
+                      setSelectedGroupId("");
+                      setGroupScores({});
+                    }}
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 appearance-none"
+                  >
+                    <option value="groups" className="bg-gray-900">Eliminatorias</option>
+                    <option value="semifinal" className="bg-gray-900">Semifinal</option>
+                    <option value="final" className="bg-gray-900">Final</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-1.5">Ronda</label>
+                  <select 
+                    value={selectedRoundForScore}
+                    onChange={(e) => {
+                      setSelectedRoundForScore(Number(e.target.value));
+                      setSelectedGroupId("");
+                      setGroupScores({});
+                    }}
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 appearance-none"
+                  >
+                    {roundsForPhase.map(r => (
+                      <option key={r} value={r} className="bg-gray-900">Ronda {r}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/70 mb-1.5">Mesa / Grupo</label>
+                <select 
+                  value={selectedGroupId}
+                  onChange={handleGroupSelection}
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 appearance-none"
+                >
+                  <option value="" disabled className="bg-gray-900">Seleccione un grupo...</option>
+                  {groupsToScore.map(g => (
+                    <option key={g.id} value={g.id} className="bg-gray-900">{g.groupName} {g.isFinished ? '(Completado)' : ''}</option>
+                  ))}
+                </select>
+              </div>
+
+              {activeGroupToScore && (
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  <h3 className="text-white font-bold mb-4">Ingresar Puntajes</h3>
+                  <div className="space-y-3">
+                    {activeGroupToScore.players.map(pid => {
+                      const p = players.find(x => x.id === pid);
+                      if (!p) return null;
+                      return (
+                        <div key={pid} className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-white/5">
+                          <div className="flex items-center gap-3">
+                            <img src={p.photo_thumb_url || `https://ui-avatars.com/api/?name=${p.name}&background=random`} className="w-8 h-8 rounded-full" />
+                            <span className="font-medium text-white/90">{p.name}</span>
+                          </div>
+                          <input 
+                            type="number"
+                            value={groupScores[pid] || ""}
+                            onChange={(e) => setGroupScores({...groupScores, [pid]: e.target.value})}
+                            placeholder="0"
+                            className="w-20 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button 
+                    onClick={handleSaveScores}
+                    disabled={!isScoreFormValid}
+                    className="w-full mt-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white font-bold transition-all shadow-lg shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {activeGroupToScore.isFinished ? "Actualizar Resultados" : "Guardar Resultados"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+        
+          </div>
+        </section>
       </div>
 
       {cropImageSrc && (
