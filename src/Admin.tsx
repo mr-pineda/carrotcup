@@ -2,13 +2,11 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { supabase } from "./supabase";
 import {
-  mockPlayers,
   type Player,
   tournamentConfig,
-  mockGroupRounds,
   type Phase,
   type GroupRound,
-} from "./mockData";
+} from "./types";
 import { ImageCropper } from "./ImageCropper";
 
 export function Admin() {
@@ -20,7 +18,7 @@ export function Admin() {
   const [tournamentStatus, setTournamentStatus] = useState<
     "registration" | "active"
   >("registration");
-  const [groupRounds, setGroupRounds] = useState<GroupRound[]>(mockGroupRounds);
+  const [groupRounds, setGroupRounds] = useState<GroupRound[]>([]);
   const [previewGroups, setPreviewGroups] = useState<GroupRound[] | null>(null);
 
   // Form State
@@ -46,18 +44,26 @@ export function Admin() {
         const p = players.find((player) => player.id === pid);
         if (!p) return null;
         let total = 0;
+        let secondaryTotal = 0;
         phaseRounds.forEach((gr) => {
           if (gr.players.includes(p.id)) {
             const score = gr.scores[p.id];
             if (score !== undefined) {
               total += score;
             }
+            const secScore = gr.secondaryScores[p.id];
+            if (secScore !== undefined) {
+              secondaryTotal += secScore;
+            }
           }
         });
-        return { p, total };
+        return { p, total, secondaryTotal };
       })
       .filter((s): s is NonNullable<typeof s> => s !== null);
-    stats.sort((a, b) => b.total - a.total);
+    stats.sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      return b.secondaryTotal - a.secondaryTotal;
+    });
     return stats;
   };
 
@@ -89,29 +95,45 @@ export function Admin() {
       const semiPhase = groupRounds.filter((g) => g.phase === "semifinal");
       if (semiPhase.length === 0) {
         const stats = getPhaseStats("groups");
-        
+
         const stat7 = stats[7];
         const stat8 = stats[8];
-        if (stats.length > 8 && stat7 && stat8 && stat7.total === stat8.total) {
+        if (
+          stats.length > 8 &&
+          stat7 &&
+          stat8 &&
+          stat7.total === stat8.total &&
+          stat7.secondaryTotal === stat8.secondaryTotal
+        ) {
           const tiedScore = stat7.total;
-          const tiedPlayers = stats.filter(s => s.total === tiedScore).map(s => {
-             const lastGroup = groupPhase.find(g => g.roundNumber === 3 && g.players.includes(s.p.id));
-             return { ...s, lastGroupName: lastGroup?.groupName || "Desconocido" };
-          });
+          const tiedSecScore = stat7.secondaryTotal;
+          const tiedPlayers = stats
+            .filter(
+              (s) => s.total === tiedScore && s.secondaryTotal === tiedSecScore,
+            )
+            .map((s) => {
+              const lastGroup = groupPhase.find(
+                (g) => g.roundNumber === 3 && g.players.includes(s.p.id),
+              );
+              return {
+                ...s,
+                lastGroupName: lastGroup?.groupName || "Desconocido",
+              };
+            });
           return {
-             phase: "semifinal" as Phase,
-             round: 1,
-             isTie: true,
-             tiedScore,
-             tiedPlayers,
-             label: "Empate detectado"
+            phase: "semifinal" as Phase,
+            round: 1,
+            isTie: true,
+            tiedScore,
+            tiedPlayers,
+            label: "Empate detectado",
           };
         }
 
         return {
           phase: "semifinal" as Phase,
           round: 1,
-          playersToGroup: stats.slice(0, 8).map(s => s.p),
+          playersToGroup: stats.slice(0, 8).map((s) => s.p),
           label: "Generar Semifinal",
         };
       }
@@ -125,26 +147,42 @@ export function Admin() {
 
         const stat3 = stats[3];
         const stat4 = stats[4];
-        if (stats.length > 4 && stat3 && stat4 && stat3.total === stat4.total) {
+        if (
+          stats.length > 4 &&
+          stat3 &&
+          stat4 &&
+          stat3.total === stat4.total &&
+          stat3.secondaryTotal === stat4.secondaryTotal
+        ) {
           const tiedScore = stat3.total;
-          const tiedPlayers = stats.filter(s => s.total === tiedScore).map(s => {
-             const lastGroup = semiPhase.find(g => g.roundNumber === 1 && g.players.includes(s.p.id));
-             return { ...s, lastGroupName: lastGroup?.groupName || "Desconocido" };
-          });
+          const tiedSecScore = stat3.secondaryTotal;
+          const tiedPlayers = stats
+            .filter(
+              (s) => s.total === tiedScore && s.secondaryTotal === tiedSecScore,
+            )
+            .map((s) => {
+              const lastGroup = semiPhase.find(
+                (g) => g.roundNumber === 1 && g.players.includes(s.p.id),
+              );
+              return {
+                ...s,
+                lastGroupName: lastGroup?.groupName || "Desconocido",
+              };
+            });
           return {
-             phase: "final" as Phase,
-             round: 1,
-             isTie: true,
-             tiedScore,
-             tiedPlayers,
-             label: "Empate detectado"
+            phase: "final" as Phase,
+            round: 1,
+            isTie: true,
+            tiedScore,
+            tiedPlayers,
+            label: "Empate detectado",
           };
         }
 
         return {
           phase: "final" as Phase,
           round: 1,
-          playersToGroup: stats.slice(0, 4).map(s => s.p),
+          playersToGroup: stats.slice(0, 4).map((s) => s.p),
           label: "Generar Final",
         };
       }
@@ -212,12 +250,16 @@ export function Admin() {
           ? gpData.filter((gp: any) => gp.group_id === g.id)
           : [];
         const scoresMap: Record<string, number> = {};
+        const secondaryScoresMap: Record<string, number> = {};
         const playerIds: string[] = [];
 
         groupPlayers.forEach((gp: any) => {
           playerIds.push(gp.player_id);
           if (gp.score !== null && gp.score !== undefined) {
             scoresMap[gp.player_id] = gp.score;
+          }
+          if (gp.secondary_score !== null && gp.secondary_score !== undefined) {
+            secondaryScoresMap[gp.player_id] = gp.secondary_score;
           }
         });
 
@@ -228,6 +270,7 @@ export function Admin() {
           groupName: g.group_name,
           players: playerIds,
           scores: scoresMap,
+          secondaryScores: secondaryScoresMap,
           isFinished: g.is_finished,
         };
       });
@@ -250,6 +293,9 @@ export function Admin() {
   const [selectedRoundForScore, setSelectedRoundForScore] = useState<number>(1);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [groupScores, setGroupScores] = useState<Record<string, string>>({}); // string to handle empty inputs
+  const [groupSecondaryScores, setGroupSecondaryScores] = useState<
+    Record<string, string>
+  >({});
 
   // Data for Scoring
   const roundsForPhase = Array.from(
@@ -271,7 +317,12 @@ export function Admin() {
     activeGroupToScore &&
     activeGroupToScore.players.every((pid) => {
       const val = groupScores[pid];
-      return val !== undefined && val.trim() !== "" && !isNaN(Number(val));
+      const secVal = groupSecondaryScores[pid];
+      const isPrimaryValid =
+        val !== undefined && val.trim() !== "" && !isNaN(Number(val));
+      const isSecondaryValid =
+        secVal !== undefined && secVal.trim() !== "" && !isNaN(Number(secVal));
+      return isPrimaryValid && isSecondaryValid;
     });
 
   const handleSaveScores = async () => {
@@ -282,7 +333,10 @@ export function Admin() {
       for (const pid of Object.keys(groupScores)) {
         await supabase
           .from("group_players")
-          .update({ score: Number(groupScores[pid]) })
+          .update({
+            score: Number(groupScores[pid]),
+            secondary_score: Number(groupSecondaryScores[pid]),
+          })
           .match({ group_id: activeGroupToScore.id, player_id: pid });
       }
 
@@ -294,6 +348,7 @@ export function Admin() {
 
       alert("¡Resultados guardados exitosamente en la base de datos!");
       setGroupScores({});
+      setGroupSecondaryScores({});
       setSelectedGroupId("");
       await fetchData();
     } catch (e: any) {
@@ -309,15 +364,26 @@ export function Admin() {
     const group = groupsToScore.find((gr) => gr.id === gid);
     if (group && group.isFinished) {
       const existing: Record<string, string> = {};
+      const existingSec: Record<string, string> = {};
       Object.keys(group.scores).forEach((pid) => {
         const score = group.scores[pid];
         if (score !== undefined) {
           existing[pid] = score.toString();
         }
       });
+      if (group.secondaryScores) {
+        Object.keys(group.secondaryScores).forEach((pid) => {
+          const secScore = group.secondaryScores[pid];
+          if (secScore !== undefined) {
+            existingSec[pid] = secScore.toString();
+          }
+        });
+      }
       setGroupScores(existing);
+      setGroupSecondaryScores(existingSec);
     } else {
       setGroupScores({});
+      setGroupSecondaryScores({});
     }
   };
 
@@ -511,6 +577,7 @@ export function Admin() {
       groupName: `Mesa ${idx + 1}`,
       players: g.map((p) => p.id),
       scores: {},
+      secondaryScores: {},
       isFinished: false,
     }));
 
@@ -564,9 +631,24 @@ export function Admin() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <svg className="animate-spin h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg
+            className="animate-spin h-8 w-8 text-purple-500"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
           <span className="text-white/50 text-sm">Verificando sesión...</span>
         </div>
@@ -598,8 +680,18 @@ export function Admin() {
             onClick={() => supabase.auth.signOut()}
             className="px-5 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 backdrop-blur-md border border-red-500/20 transition-all font-medium flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
             </svg>
             Salir
           </button>
@@ -993,25 +1085,55 @@ export function Admin() {
               {nextStageInfo && nextStageInfo.isTie && (
                 <div className="w-full mt-6 bg-red-500/10 border border-red-500/30 p-6 rounded-2xl flex flex-col md:flex-row gap-4 items-center animate-fade-in">
                   <div className="bg-red-500/20 p-4 rounded-full text-red-400 shrink-0">
-                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    <svg
+                      className="w-8 h-8"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-red-400 mb-2">¡Empate detectado en el puesto de corte!</h3>
+                    <h3 className="text-xl font-bold text-red-400 mb-2">
+                      ¡Empate detectado en el puesto de corte!
+                    </h3>
                     <p className="text-red-200/80 mb-3 text-sm">
-                      Hay jugadores empatados con <strong>{nextStageInfo.tiedScore} puntos</strong> luchando por el último cupo. El torneo no puede avanzar hasta que se resuelva.
+                      Hay jugadores empatados con{" "}
+                      <strong>{nextStageInfo.tiedScore} puntos</strong> luchando
+                      por el último cupo. El torneo no puede avanzar hasta que
+                      se resuelva.
                     </p>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {nextStageInfo.tiedPlayers?.map(s => (
-                        <div key={s.p.id} className="bg-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2 border border-red-500/20">
-                          <img src={s.p.photo_thumb_url || `https://ui-avatars.com/api/?name=${s.p.name}&background=random`} className="w-5 h-5 rounded-full" />
-                          <span className="text-sm font-bold text-red-100">{s.p.name} - {s.total} pts ({s.lastGroupName})</span>
+                      {nextStageInfo.tiedPlayers?.map((s) => (
+                        <div
+                          key={s.p.id}
+                          className="bg-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2 border border-red-500/20"
+                        >
+                          <img
+                            src={
+                              s.p.photo_thumb_url ||
+                              `https://ui-avatars.com/api/?name=${s.p.name}&background=random`
+                            }
+                            className="w-5 h-5 rounded-full"
+                          />
+                          <span className="text-sm font-bold text-red-100">
+                            {s.p.name} - {s.total} pts ({s.lastGroupName})
+                          </span>
                         </div>
                       ))}
                     </div>
                     <div className="bg-red-500/10 p-3 rounded-xl border border-red-500/20 text-sm text-red-300">
-                      <strong>💡 Solución:</strong> Realiza un mini-juego de desempate con ellos. Una vez tengas al ganador, utiliza el panel de abajo ("Cargar Resultados") para ajustar manualmente los puntajes de su grupo en la ronda anterior y sumarle o restarle puntos.
+                      <strong>💡 Solución:</strong> Realiza un mini-juego de
+                      desempate con ellos. Una vez tengas al ganador, utiliza el
+                      panel de abajo ("Cargar Resultados") para ajustar
+                      manualmente los puntajes de su grupo en la ronda anterior
+                      y sumarle o restarle puntos.
                     </div>
                   </div>
                 </div>
@@ -1054,28 +1176,59 @@ export function Admin() {
                       </div>
                     ))}
                   </div>
-                  
+
                   {nextStageInfo && nextStageInfo.round > 1 && (
                     <div className="mt-2 mb-8">
                       <h3 className="text-lg font-bold text-white/70 mb-4 border-t border-white/10 pt-6">
-                        Grupos de Rondas Anteriores ({nextStageInfo.phase === "groups" ? "Eliminatorias" : nextStageInfo.phase === "semifinal" ? "Semifinal" : "Final"})
+                        Grupos de Rondas Anteriores (
+                        {nextStageInfo.phase === "groups"
+                          ? "Eliminatorias"
+                          : nextStageInfo.phase === "semifinal"
+                            ? "Semifinal"
+                            : "Final"}
+                        )
                       </h3>
-                      {Array.from({length: nextStageInfo.round - 1}, (_, i) => i + 1).map(roundNum => {
-                        const pastGroups = groupRounds.filter(g => g.phase === nextStageInfo.phase && g.roundNumber === roundNum);
+                      {Array.from(
+                        { length: nextStageInfo.round - 1 },
+                        (_, i) => i + 1,
+                      ).map((roundNum) => {
+                        const pastGroups = groupRounds.filter(
+                          (g) =>
+                            g.phase === nextStageInfo.phase &&
+                            g.roundNumber === roundNum,
+                        );
                         if (pastGroups.length === 0) return null;
                         return (
                           <div key={roundNum} className="mb-6 last:mb-0">
-                            <h4 className="text-sm font-bold text-white/50 mb-3 uppercase tracking-wider">Ronda {roundNum}</h4>
+                            <h4 className="text-sm font-bold text-white/50 mb-3 uppercase tracking-wider">
+                              Ronda {roundNum}
+                            </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                              {pastGroups.map(g => (
-                                <div key={g.id} className="bg-black/40 p-3 rounded-xl border border-white/5 opacity-60">
-                                  <h5 className="font-bold text-white/70 mb-2 pb-1 border-b border-white/5 text-sm">{g.groupName}</h5>
+                              {pastGroups.map((g) => (
+                                <div
+                                  key={g.id}
+                                  className="bg-black/40 p-3 rounded-xl border border-white/5 opacity-60"
+                                >
+                                  <h5 className="font-bold text-white/70 mb-2 pb-1 border-b border-white/5 text-sm">
+                                    {g.groupName}
+                                  </h5>
                                   <ul className="space-y-1">
-                                    {g.players.map(pid => {
-                                      const p = players.find(x => x.id === pid);
+                                    {g.players.map((pid) => {
+                                      const p = players.find(
+                                        (x) => x.id === pid,
+                                      );
                                       return (
-                                        <li key={pid} className="flex items-center gap-2 text-xs text-white/50">
-                                          <img src={p?.photo_thumb_url || `https://ui-avatars.com/api/?name=${p?.name}&background=random`} className="w-4 h-4 rounded-full grayscale opacity-70" />
+                                        <li
+                                          key={pid}
+                                          className="flex items-center gap-2 text-xs text-white/50"
+                                        >
+                                          <img
+                                            src={
+                                              p?.photo_thumb_url ||
+                                              `https://ui-avatars.com/api/?name=${p?.name}&background=random`
+                                            }
+                                            className="w-4 h-4 rounded-full grayscale opacity-70"
+                                          />
                                           {p?.name}
                                         </li>
                                       );
@@ -1127,7 +1280,9 @@ export function Admin() {
                           d="M5 13l4 4L19 7"
                         />
                       </svg>
-                      {tournamentStatus === "registration" ? "Confirmar e Iniciar Torneo" : "Confirmar y Continuar Torneo"}
+                      {tournamentStatus === "registration"
+                        ? "Confirmar e Iniciar Torneo"
+                        : "Confirmar y Continuar Torneo"}
                     </button>
                   </div>
                 </div>
@@ -1174,6 +1329,7 @@ export function Admin() {
                         setSelectedRoundForScore(1);
                         setSelectedGroupId("");
                         setGroupScores({});
+                        setGroupSecondaryScores({});
                       }}
                       className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 appearance-none"
                     >
@@ -1199,6 +1355,7 @@ export function Admin() {
                         setSelectedRoundForScore(Number(e.target.value));
                         setSelectedGroupId("");
                         setGroupScores({});
+                        setGroupSecondaryScores({});
                       }}
                       className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500/50 appearance-none"
                     >
@@ -1257,18 +1414,43 @@ export function Admin() {
                                 {p.name}
                               </span>
                             </div>
-                            <input
-                              type="number"
-                              value={groupScores[pid] || ""}
-                              onChange={(e) =>
-                                setGroupScores({
-                                  ...groupScores,
-                                  [pid]: e.target.value,
-                                })
-                              }
-                              placeholder="0"
-                              className="w-20 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:ring-2 focus:ring-pink-500/50"
-                            />
+                            <div className="flex items-center gap-4">
+                              <div className="flex flex-col items-center">
+                                <span className="text-[11px] font-bold text-pink-400 mb-1 tracking-wide uppercase">
+                                  Pts. Posición
+                                </span>
+                                <input
+                                  type="number"
+                                  value={groupScores[pid] || ""}
+                                  onChange={(e) =>
+                                    setGroupScores({
+                                      ...groupScores,
+                                      [pid]: e.target.value,
+                                    })
+                                  }
+                                  placeholder="--"
+                                  className="w-20 h-11 bg-pink-500/10 border-2 border-pink-500/40 rounded-xl px-2 text-white font-bold text-lg text-center focus:outline-none focus:border-pink-400 focus:shadow-[0_0_15px_rgba(244,114,182,0.3)] transition-all"
+                                />
+                              </div>
+                              <div className="w-[1px] h-10 bg-white/10 mx-1"></div>
+                              <div className="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
+                                <span className="text-[10px] text-white/50 mb-1">
+                                  Pts. Juego
+                                </span>
+                                <input
+                                  type="number"
+                                  value={groupSecondaryScores[pid] || ""}
+                                  onChange={(e) =>
+                                    setGroupSecondaryScores({
+                                      ...groupSecondaryScores,
+                                      [pid]: e.target.value,
+                                    })
+                                  }
+                                  placeholder="0"
+                                  className="w-16 h-9 bg-black/40 border border-white/10 rounded-lg px-2 text-white/80 text-sm text-center focus:outline-none focus:border-white/30 transition-all"
+                                />
+                              </div>
+                            </div>
                           </div>
                         );
                       })}

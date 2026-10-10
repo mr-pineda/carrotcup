@@ -19,6 +19,7 @@ CREATE TABLE public.group_players (
   group_id UUID REFERENCES public.groups(id) ON DELETE CASCADE,
   player_id UUID REFERENCES public.players(id) ON DELETE CASCADE,
   score INTEGER,
+  secondary_score INTEGER,
   created_at TIMESTAMPTZ DEFAULT now(),
   PRIMARY KEY (group_id, player_id)
 );
