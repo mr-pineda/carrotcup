@@ -1,0 +1,523 @@
+{
+  "source": "db_cluster-21-10-2026@00-47-41.backup.gz",
+  "players": [
+    {
+      "id": "101c010c-c26d-4948-ba91-79e7a682d272",
+      "name": "Anto",
+      "photo_full_url": "avatars/101c010c-c26d-4948-ba91-79e7a682d272-full.webp",
+      "photo_thumb_url": "avatars/101c010c-c26d-4948-ba91-79e7a682d272-thumb.webp"
+    },
+    {
+      "id": "b6c3e8cc-29dd-45bf-8f06-e5aead412103",
+      "name": "Cata",
+      "photo_full_url": "avatars/b6c3e8cc-29dd-45bf-8f06-e5aead412103-full.webp",
+      "photo_thumb_url": "avatars/b6c3e8cc-29dd-45bf-8f06-e5aead412103-thumb.webp"
+    },
+    {
+      "id": "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2",
+      "name": "Dante",
+      "photo_full_url": "avatars/4c21dee1-de4c-4a7b-8683-5dcf2edc16e2-full.webp",
+      "photo_thumb_url": "avatars/4c21dee1-de4c-4a7b-8683-5dcf2edc16e2-thumb.webp"
+    },
+    {
+      "id": "34bd16db-229c-4daf-8a0e-b59aa0da4476",
+      "name": "Felipe",
+      "photo_full_url": "avatars/34bd16db-229c-4daf-8a0e-b59aa0da4476-full.webp",
+      "photo_thumb_url": "avatars/34bd16db-229c-4daf-8a0e-b59aa0da4476-thumb.webp"
+    },
+    {
+      "id": "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd",
+      "name": "Gabita",
+      "photo_full_url": "avatars/c2b5f300-fafb-40f0-b21c-a1270e4a0bbd-full.webp",
+      "photo_thumb_url": "avatars/c2b5f300-fafb-40f0-b21c-a1270e4a0bbd-thumb.webp"
+    },
+    {
+      "id": "1cb97852-3e5e-4b1c-b832-4b351c294a12",
+      "name": "Ita",
+      "photo_full_url": "avatars/1cb97852-3e5e-4b1c-b832-4b351c294a12-full.webp",
+      "photo_thumb_url": "avatars/1cb97852-3e5e-4b1c-b832-4b351c294a12-thumb.webp"
+    },
+    {
+      "id": "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e",
+      "name": "Javy",
+      "photo_full_url": "avatars/b9bf71e3-93b8-4bb3-90be-0a64f137ab6e-full.webp",
+      "photo_thumb_url": "avatars/b9bf71e3-93b8-4bb3-90be-0a64f137ab6e-thumb.webp"
+    },
+    {
+      "id": "dd8e914d-5a69-4aac-a5bc-d67daaa29217",
+      "name": "Mati",
+      "photo_full_url": "avatars/dd8e914d-5a69-4aac-a5bc-d67daaa29217-full.webp",
+      "photo_thumb_url": "avatars/dd8e914d-5a69-4aac-a5bc-d67daaa29217-thumb.webp"
+    },
+    {
+      "id": "c4bf92db-0da5-409c-9c44-fe31cb56404b",
+      "name": "Nanda",
+      "photo_full_url": "avatars/c4bf92db-0da5-409c-9c44-fe31cb56404b-full.webp",
+      "photo_thumb_url": "avatars/c4bf92db-0da5-409c-9c44-fe31cb56404b-thumb.webp"
+    },
+    {
+      "id": "ae591632-05d0-4044-8f1c-1971720df5ac",
+      "name": "Tata Feña",
+      "photo_full_url": "avatars/ae591632-05d0-4044-8f1c-1971720df5ac-full.webp",
+      "photo_thumb_url": "avatars/ae591632-05d0-4044-8f1c-1971720df5ac-thumb.webp"
+    },
+    {
+      "id": "6b777ca0-c23f-4c3d-be3e-c92828210b0b",
+      "name": "Tia Ale",
+      "photo_full_url": "avatars/6b777ca0-c23f-4c3d-be3e-c92828210b0b-full.webp",
+      "photo_thumb_url": "avatars/6b777ca0-c23f-4c3d-be3e-c92828210b0b-thumb.webp"
+    },
+    {
+      "id": "88ff6424-edfd-4044-97b5-20d6ffc8dbeb",
+      "name": "Tia Katy",
+      "photo_full_url": "avatars/88ff6424-edfd-4044-97b5-20d6ffc8dbeb-full.webp",
+      "photo_thumb_url": "avatars/88ff6424-edfd-4044-97b5-20d6ffc8dbeb-thumb.webp"
+    },
+    {
+      "id": "3e3a7164-ea3b-4add-a5c4-00e182be60fe",
+      "name": "Tio Cristian",
+      "photo_full_url": "avatars/3e3a7164-ea3b-4add-a5c4-00e182be60fe-full.webp",
+      "photo_thumb_url": "avatars/3e3a7164-ea3b-4add-a5c4-00e182be60fe-thumb.webp"
+    },
+    {
+      "id": "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d",
+      "name": "Tio Marco",
+      "photo_full_url": "avatars/3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d-full.webp",
+      "photo_thumb_url": "avatars/3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d-thumb.webp"
+    },
+    {
+      "id": "55742460-6c96-4bd9-872d-4b80a73a01cf",
+      "name": "Tio Nacho",
+      "photo_full_url": "avatars/55742460-6c96-4bd9-872d-4b80a73a01cf-full.webp",
+      "photo_thumb_url": "avatars/55742460-6c96-4bd9-872d-4b80a73a01cf-thumb.webp"
+    },
+    {
+      "id": "58e2b80b-6c92-4209-8149-2d1208f9b140",
+      "name": "Tio Nando",
+      "photo_full_url": "avatars/58e2b80b-6c92-4209-8149-2d1208f9b140-full.webp",
+      "photo_thumb_url": "avatars/58e2b80b-6c92-4209-8149-2d1208f9b140-thumb.webp"
+    },
+    {
+      "id": "4179d35d-22d6-4ba3-8332-0f1ca4c11227",
+      "name": "Tio Renato",
+      "photo_full_url": "avatars/4179d35d-22d6-4ba3-8332-0f1ca4c11227-full.webp",
+      "photo_thumb_url": "avatars/4179d35d-22d6-4ba3-8332-0f1ca4c11227-thumb.webp"
+    },
+    {
+      "id": "345cc87d-00bc-4b58-90b8-a0df4fc2b292",
+      "name": "Tio Yayi",
+      "photo_full_url": "avatars/345cc87d-00bc-4b58-90b8-a0df4fc2b292-full.webp",
+      "photo_thumb_url": "avatars/345cc87d-00bc-4b58-90b8-a0df4fc2b292-thumb.webp"
+    },
+    {
+      "id": "16ebec98-9e75-471e-b5a0-a4be8fe391b8",
+      "name": "Yiyo",
+      "photo_full_url": "avatars/16ebec98-9e75-471e-b5a0-a4be8fe391b8-full.webp",
+      "photo_thumb_url": "avatars/16ebec98-9e75-471e-b5a0-a4be8fe391b8-thumb.webp"
+    }
+  ],
+  "groupRounds": [
+    {
+      "id": "c22933d8-bd4c-4c9e-8f6d-b008d4bd413d",
+      "phase": "groups",
+      "roundNumber": 1,
+      "groupName": "Mesa 1",
+      "players": [
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb",
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd",
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe",
+        "58e2b80b-6c92-4209-8149-2d1208f9b140",
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e"
+      ],
+      "scores": {
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb": 1,
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 3,
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 4,
+        "58e2b80b-6c92-4209-8149-2d1208f9b140": 1,
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 2
+      },
+      "secondaryScores": {
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb": 15,
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 29,
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 31,
+        "58e2b80b-6c92-4209-8149-2d1208f9b140": 10,
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 17
+      },
+      "isFinished": true
+    },
+    {
+      "id": "4f5afd7f-f816-4fe6-9b6f-93d9cc8882ce",
+      "phase": "semifinal",
+      "roundNumber": 1,
+      "groupName": "Mesa 1",
+      "players": [
+        "55742460-6c96-4bd9-872d-4b80a73a01cf",
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2",
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd",
+        "ae591632-05d0-4044-8f1c-1971720df5ac"
+      ],
+      "scores": {
+        "55742460-6c96-4bd9-872d-4b80a73a01cf": 2,
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2": 1,
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 4,
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 3
+      },
+      "secondaryScores": {
+        "55742460-6c96-4bd9-872d-4b80a73a01cf": 25,
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2": 22,
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 31,
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 26
+      },
+      "isFinished": true
+    },
+    {
+      "id": "fd168220-668c-4e13-a2c1-5383c8059b2f",
+      "phase": "final",
+      "roundNumber": 1,
+      "groupName": "Mesa 1",
+      "players": [
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e",
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd",
+        "ae591632-05d0-4044-8f1c-1971720df5ac",
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe"
+      ],
+      "scores": {
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 4,
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 3,
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 2,
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 1
+      },
+      "secondaryScores": {
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 34,
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 29,
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 23,
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 22
+      },
+      "isFinished": true
+    },
+    {
+      "id": "dda3bacb-6268-479c-95ca-d101e0b06b2a",
+      "phase": "groups",
+      "roundNumber": 1,
+      "groupName": "Mesa 2",
+      "players": [
+        "ae591632-05d0-4044-8f1c-1971720df5ac",
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8",
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227",
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217",
+        "101c010c-c26d-4948-ba91-79e7a682d272"
+      ],
+      "scores": {
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 2,
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8": 4,
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227": 1,
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217": 1,
+        "101c010c-c26d-4948-ba91-79e7a682d272": 3
+      },
+      "secondaryScores": {
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 12,
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8": 34,
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227": 6,
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217": 0,
+        "101c010c-c26d-4948-ba91-79e7a682d272": 14
+      },
+      "isFinished": true
+    },
+    {
+      "id": "8c96b927-8119-44cb-be1a-7629493c65dc",
+      "phase": "semifinal",
+      "roundNumber": 1,
+      "groupName": "Mesa 2",
+      "players": [
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe",
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e",
+        "58e2b80b-6c92-4209-8149-2d1208f9b140",
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476"
+      ],
+      "scores": {
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 4,
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 3,
+        "58e2b80b-6c92-4209-8149-2d1208f9b140": 2,
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476": 1
+      },
+      "secondaryScores": {
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 33,
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 31,
+        "58e2b80b-6c92-4209-8149-2d1208f9b140": 19,
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476": 17
+      },
+      "isFinished": true
+    },
+    {
+      "id": "3599596d-982a-4977-902e-a74c0f9293cb",
+      "phase": "groups",
+      "roundNumber": 1,
+      "groupName": "Mesa 3",
+      "players": [
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292",
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12",
+        "55742460-6c96-4bd9-872d-4b80a73a01cf",
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b",
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2"
+      ],
+      "scores": {
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292": 2,
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12": 1,
+        "55742460-6c96-4bd9-872d-4b80a73a01cf": 4,
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b": 2,
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2": 3
+      },
+      "secondaryScores": {
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292": 0,
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12": 5,
+        "55742460-6c96-4bd9-872d-4b80a73a01cf": 31,
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b": 27,
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2": 28
+      },
+      "isFinished": true
+    },
+    {
+      "id": "f1d7fa0a-5fd7-4830-8748-b630a6f386e9",
+      "phase": "groups",
+      "roundNumber": 1,
+      "groupName": "Mesa 4",
+      "players": [
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103",
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b",
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476",
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d"
+      ],
+      "scores": {
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103": 1,
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b": 4,
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476": 2,
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d": 3
+      },
+      "secondaryScores": {
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103": 21,
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b": 31,
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476": 25,
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d": 27
+      },
+      "isFinished": true
+    },
+    {
+      "id": "9569919d-34e9-4ca7-8e3f-be977985b5a8",
+      "phase": "groups",
+      "roundNumber": 2,
+      "groupName": "Mesa 1",
+      "players": [
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b",
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103",
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e",
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476",
+        "58e2b80b-6c92-4209-8149-2d1208f9b140"
+      ],
+      "scores": {
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b": 1,
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103": 1,
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 2,
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476": 4,
+        "58e2b80b-6c92-4209-8149-2d1208f9b140": 3
+      },
+      "secondaryScores": {
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b": 23,
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103": 21,
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 28,
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476": 33,
+        "58e2b80b-6c92-4209-8149-2d1208f9b140": 28
+      },
+      "isFinished": true
+    },
+    {
+      "id": "f85d1075-7a97-4e35-9e3f-41c7d6b405b3",
+      "phase": "groups",
+      "roundNumber": 2,
+      "groupName": "Mesa 2",
+      "players": [
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd",
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227",
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2",
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe",
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217"
+      ],
+      "scores": {
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 4,
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227": 1,
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2": 3,
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 2,
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217": 1
+      },
+      "secondaryScores": {
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 31,
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227": 10,
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2": 22,
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 11,
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217": 0
+      },
+      "isFinished": true
+    },
+    {
+      "id": "24ca2774-9c5a-4586-b0a5-700e0b69c01f",
+      "phase": "groups",
+      "roundNumber": 2,
+      "groupName": "Mesa 3",
+      "players": [
+        "55742460-6c96-4bd9-872d-4b80a73a01cf",
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8",
+        "101c010c-c26d-4948-ba91-79e7a682d272",
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb",
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292"
+      ],
+      "scores": {
+        "55742460-6c96-4bd9-872d-4b80a73a01cf": 4,
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8": 3,
+        "101c010c-c26d-4948-ba91-79e7a682d272": 2,
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb": 1,
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292": 2
+      },
+      "secondaryScores": {
+        "55742460-6c96-4bd9-872d-4b80a73a01cf": 32,
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8": 21,
+        "101c010c-c26d-4948-ba91-79e7a682d272": 17,
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb": 10,
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292": 0
+      },
+      "isFinished": true
+    },
+    {
+      "id": "fd5dcbaa-e66f-4d9b-bac3-7671b138c3be",
+      "phase": "groups",
+      "roundNumber": 2,
+      "groupName": "Mesa 4",
+      "players": [
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12",
+        "ae591632-05d0-4044-8f1c-1971720df5ac",
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b",
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d"
+      ],
+      "scores": {
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12": 1,
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 4,
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b": 3,
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d": 2
+      },
+      "secondaryScores": {
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12": 23,
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 31,
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b": 30,
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d": 28
+      },
+      "isFinished": true
+    },
+    {
+      "id": "8f629db9-2a82-4835-a04a-6eb5cfa3da7b",
+      "phase": "groups",
+      "roundNumber": 3,
+      "groupName": "Mesa 1",
+      "players": [
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217",
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe",
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2",
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227",
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8"
+      ],
+      "scores": {
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217": 1,
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 4,
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2": 3,
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227": 2,
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8": 1
+      },
+      "secondaryScores": {
+        "dd8e914d-5a69-4aac-a5bc-d67daaa29217": 0,
+        "3e3a7164-ea3b-4add-a5c4-00e182be60fe": 31,
+        "4c21dee1-de4c-4a7b-8683-5dcf2edc16e2": 13,
+        "4179d35d-22d6-4ba3-8332-0f1ca4c11227": 11,
+        "16ebec98-9e75-471e-b5a0-a4be8fe391b8": 10
+      },
+      "isFinished": true
+    },
+    {
+      "id": "01f54de7-ed4a-4565-822f-2992da8c484d",
+      "phase": "groups",
+      "roundNumber": 3,
+      "groupName": "Mesa 2",
+      "players": [
+        "58e2b80b-6c92-4209-8149-2d1208f9b140",
+        "ae591632-05d0-4044-8f1c-1971720df5ac",
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d",
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292",
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b"
+      ],
+      "scores": {
+        "58e2b80b-6c92-4209-8149-2d1208f9b140": 4,
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 3,
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d": 2,
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292": 1,
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b": 1
+      },
+      "secondaryScores": {
+        "58e2b80b-6c92-4209-8149-2d1208f9b140": 36,
+        "ae591632-05d0-4044-8f1c-1971720df5ac": 30,
+        "3dd1e279-2f5e-45ed-8fa6-09ba0c6e991d": 25,
+        "345cc87d-00bc-4b58-90b8-a0df4fc2b292": 22,
+        "c4bf92db-0da5-409c-9c44-fe31cb56404b": 17
+      },
+      "isFinished": true
+    },
+    {
+      "id": "ff3d525a-e30f-4d0c-8886-fd9c81495d1a",
+      "phase": "groups",
+      "roundNumber": 3,
+      "groupName": "Mesa 3",
+      "players": [
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e",
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476",
+        "101c010c-c26d-4948-ba91-79e7a682d272",
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb",
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12"
+      ],
+      "scores": {
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 4,
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476": 3,
+        "101c010c-c26d-4948-ba91-79e7a682d272": 2,
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb": 1,
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12": 1
+      },
+      "secondaryScores": {
+        "b9bf71e3-93b8-4bb3-90be-0a64f137ab6e": 32,
+        "34bd16db-229c-4daf-8a0e-b59aa0da4476": 27,
+        "101c010c-c26d-4948-ba91-79e7a682d272": 25,
+        "88ff6424-edfd-4044-97b5-20d6ffc8dbeb": 15,
+        "1cb97852-3e5e-4b1c-b832-4b351c294a12": 20
+      },
+      "isFinished": true
+    },
+    {
+      "id": "3200dd72-8c3a-43f8-9f71-928c8e081ac2",
+      "phase": "groups",
+      "roundNumber": 3,
+      "groupName": "Mesa 4",
+      "players": [
+        "55742460-6c96-4bd9-872d-4b80a73a01cf",
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd",
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b",
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103"
+      ],
+      "scores": {
+        "55742460-6c96-4bd9-872d-4b80a73a01cf": 4,
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 3,
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b": 2,
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103": 1
+      },
+      "secondaryScores": {
+        "55742460-6c96-4bd9-872d-4b80a73a01cf": 32,
+        "c2b5f300-fafb-40f0-b21c-a1270e4a0bbd": 26,
+        "6b777ca0-c23f-4c3d-be3e-c92828210b0b": 24,
+        "b6c3e8cc-29dd-45bf-8f06-e5aead412103": 17
+      },
+      "isFinished": true
+    }
+  ]
+}

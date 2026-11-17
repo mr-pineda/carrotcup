@@ -1,5 +1,9 @@
 # Contexto del Proyecto
 
+> **Estado actual (nov. 2026):** el torneo terminó y el sitio se convirtió en un archivo estático de solo lectura.
+> Ya no usa Supabase: los datos están en `src/data/tournament.json` y la vista de administración fue retirada.
+> Lo que sigue describe el diseño original del proyecto.
+
 Eres un desarrollador web experto. Tu tarea es construir una aplicación web de una sola página (SPA) para gestionar un torneo de cartas familiar.
 
 ## Comportamiendo del Agente

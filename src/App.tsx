@@ -1,7 +1,5 @@
 import { HashRouter, Routes, Route } from "react-router";
 import { Home } from "./Home";
-import { Admin } from "./Admin";
-import { Login } from "./Login";
 import "./index.css";
 
 export function App() {
@@ -26,13 +24,6 @@ export function App() {
               </div>
               <span>Copa <span className="text-orange-400">Zanahoria</span></span>
             </a>
-            
-            <a 
-              href="#/admin" 
-              className="text-sm font-medium text-white/60 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg border border-white/5"
-            >
-              Administrar
-            </a>
           </div>
         </nav>
 
@@ -40,8 +31,7 @@ export function App() {
         <main className="relative z-10 min-h-[calc(100vh-4rem)]">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<Home />} />
           </Routes>
         </main>
       </div>

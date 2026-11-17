@@ -2,3 +2,9 @@
 [serve.static]
 plugins = ["bun-plugin-tailwind"]
 env = "BUN_PUBLIC_*"
+
+[install]
+# No instalar dependencias peer automáticamente: bun-plugin-tailwind declara "bun"
+# como peer y el paquete npm "bun" deja un bun.exe roto en node_modules/.bin en Windows,
+# lo que hace fallar `bun run dev` / `bun run build` ("could not create a process").
+peer = false

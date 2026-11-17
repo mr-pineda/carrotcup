@@ -1,116 +1,36 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   tournamentConfig,
   type Phase,
   type Player,
   type GroupRound,
 } from "./types";
-import { supabase } from "./supabase";
+import tournamentData from "./data/tournament.json";
+import { avatarSrc } from "./avatar";
+
+// Datos congelados del torneo (exportados desde el respaldo de Supabase).
+const players = tournamentData.players as unknown as Player[];
+const groupRounds = tournamentData.groupRounds as unknown as GroupRound[];
+
+const isPhaseFinished = (phase: Phase) => {
+  const rounds = groupRounds.filter(
+    (gr) =>
+      gr.phase === phase &&
+      (phase !== "groups" ||
+        gr.roundNumber === tournamentConfig.phases.groups.totalRounds),
+  );
+  return rounds.length > 0 && rounds.every((gr) => gr.isFinished);
+};
+
+const initialPhase: Phase = isPhaseFinished("semifinal")
+  ? "final"
+  : isPhaseFinished("groups")
+    ? "semifinal"
+    : "groups";
 
 export function Home() {
-  const [activePhase, setActivePhase] = useState<Phase>("groups");
+  const [activePhase, setActivePhase] = useState<Phase>(initialPhase);
   const [selectedRound, setSelectedRound] = useState<number>(1);
-
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [groupRounds, setGroupRounds] = useState<GroupRound[]>([]);
-
-  const [hasInitialPhaseSet, setHasInitialPhaseSet] = useState(false);
-
-  useEffect(() => {
-    fetchData();
-
-    // Suscripción en tiempo real a cualquier cambio en la base de datos
-    const channel = supabase
-      .channel("schema-db-changes")
-      .on("postgres_changes", { event: "*", schema: "public" }, () => {
-        fetchData(); // Refrescar datos al detectar cambios
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchData = async () => {
-    const { data: playersData } = await supabase.from("players").select("*");
-
-    if (playersData) {
-      const parsedPlayers: Player[] = playersData.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        photo_full_url: p.photo_full_url,
-        photo_thumb_url: p.photo_thumb_url,
-        relatives: [],
-      }));
-      setPlayers(parsedPlayers);
-    }
-
-    const { data: groupsData } = await supabase
-      .from("groups")
-      .select("*")
-      .order("round_number");
-    const { data: gpData } = await supabase.from("group_players").select("*");
-
-    if (groupsData) {
-      const parsedGroups: GroupRound[] = groupsData.map((g: any) => {
-        const groupPlayers = gpData
-          ? gpData.filter((gp: any) => gp.group_id === g.id)
-          : [];
-        const scoresMap: Record<string, number> = {};
-        const secondaryScoresMap: Record<string, number> = {};
-        const playerIds: string[] = [];
-
-        groupPlayers.forEach((gp: any) => {
-          playerIds.push(gp.player_id);
-          if (gp.score !== null && gp.score !== undefined) {
-            scoresMap[gp.player_id] = gp.score;
-          }
-          if (gp.secondary_score !== null && gp.secondary_score !== undefined) {
-            secondaryScoresMap[gp.player_id] = gp.secondary_score;
-          }
-        });
-
-        return {
-          id: g.id,
-          phase: g.phase as Phase,
-          roundNumber: g.round_number,
-          groupName: g.group_name,
-          players: playerIds,
-          scores: scoresMap,
-          secondaryScores: secondaryScoresMap,
-          isFinished: g.is_finished,
-        };
-      });
-      setGroupRounds(parsedGroups);
-
-      if (!hasInitialPhaseSet) {
-        const checkUnlocked = (phase: Phase) => {
-          if (phase === "groups") return true;
-          if (phase === "semifinal") {
-            const round3Groups = parsedGroups.filter(
-              (gr) => gr.phase === "groups" && gr.roundNumber === 3,
-            );
-            if (round3Groups.length === 0) return false;
-            return round3Groups.every((gr) => gr.isFinished);
-          }
-          if (phase === "final") {
-            const semiGroups = parsedGroups.filter(
-              (gr) => gr.phase === "semifinal",
-            );
-            if (semiGroups.length === 0) return false;
-            return semiGroups.every((gr) => gr.isFinished);
-          }
-          return false;
-        };
-
-        if (checkUnlocked("final")) setActivePhase("final");
-        else if (checkUnlocked("semifinal")) setActivePhase("semifinal");
-
-        setHasInitialPhaseSet(true);
-      }
-    }
-  };
 
   const handlePhaseChange = (phase: Phase) => {
     setActivePhase(phase);
@@ -203,29 +123,18 @@ export function Home() {
         if (b.total !== a.total) return b.total - a.total;
         return b.secondaryTotal - a.secondaryTotal;
       });
-  }, [activePhase, groupRounds, players]);
+  }, [activePhase]);
 
   const groupsInSelectedRound = useMemo(() => {
     return groupRounds.filter(
       (gr) => gr.phase === activePhase && gr.roundNumber === selectedRound,
     );
-  }, [activePhase, selectedRound, groupRounds]);
+  }, [activePhase, selectedRound]);
 
   const isPhaseUnlocked = (phase: Phase) => {
     if (phase === "groups") return true;
-    if (phase === "semifinal") {
-      const round3Groups = groupRounds.filter(
-        (gr) => gr.phase === "groups" && gr.roundNumber === 3,
-      );
-      if (round3Groups.length === 0) return false;
-      return round3Groups.every((gr) => gr.isFinished);
-    }
-    if (phase === "final") {
-      const semiGroups = groupRounds.filter((gr) => gr.phase === "semifinal");
-      if (semiGroups.length === 0) return false;
-      return semiGroups.every((gr) => gr.isFinished);
-    }
-    return false;
+    if (phase === "semifinal") return isPhaseFinished("groups");
+    return isPhaseFinished("semifinal");
   };
 
   const getPhaseName = (phase: Phase) => {
@@ -240,7 +149,7 @@ export function Home() {
     );
     if (round1Groups.length === 0) return false;
     return round1Groups.every((gr) => gr.isFinished);
-  }, [activePhase, groupRounds]);
+  }, [activePhase]);
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12 relative z-10 animate-fade-in">
@@ -327,11 +236,7 @@ export function Home() {
                     {placeName}
                   </div>
                   <img
-                    src={
-                      player.photo_full_url ||
-                      player.photo_thumb_url ||
-                      `https://ui-avatars.com/api/?name=${player.name}&background=random`
-                    }
+                    src={avatarSrc(player, "full")}
                     alt={player.name}
                     className={`w-32 h-32 rounded-full object-cover border-4 ${borderColor} mb-6 shadow-xl`}
                   />
@@ -437,10 +342,7 @@ export function Home() {
                                 ></div>
                               )}
                               <img
-                                src={
-                                  player.photo_thumb_url ||
-                                  `https://ui-avatars.com/api/?name=${player.name}&background=random`
-                                }
+                                src={avatarSrc(player, "thumb")}
                                 alt={player.name}
                                 className={`w-10 h-10 rounded-full object-cover relative z-10 ${imgBorder}`}
                               />

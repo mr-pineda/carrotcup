@@ -1,5 +1,5 @@
 import tailwind from "bun-plugin-tailwind";
-import { rm } from "node:fs/promises";
+import { cp, rm } from "node:fs/promises";
 import path from "node:path";
 
 const outdir = path.join(process.cwd(), "dist");
@@ -22,3 +22,7 @@ const result = await Bun.build({
 for (const output of result.outputs) {
   console.log(` ${path.relative(process.cwd(), output.path)}  ${(output.size / 1024).toFixed(1)} KB`);
 }
+
+// Archivos estáticos (fotos de jugadores, etc.) se copian tal cual a dist/
+await cp(path.join(process.cwd(), "public"), outdir, { recursive: true });
+console.log(" public/ -> dist/");
